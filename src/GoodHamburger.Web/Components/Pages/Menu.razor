@@ -1,0 +1,86 @@
+@page "/menu"
+@attribute [Authorize]
+@inject MenuApiClient MenuApi
+
+<PageTitle>Menu — Good Hamburger</PageTitle>
+
+<h3>🍔 Menu</h3>
+
+@if (loading)
+{
+    <p><em>Loading…</em></p>
+}
+else if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-12">
+            <h5 class="text-muted">Sandwiches</h5>
+        </div>
+        @foreach (var item in sandwiches)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">@item.Name</h6>
+                        <p class="card-text text-success fw-semibold">R$ @item.Price.ToString("F2")</p>
+                        <span class="badge bg-secondary">@item.Type</span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="col-12 mt-3">
+            <h5 class="text-muted">Sides</h5>
+        </div>
+        @foreach (var item in sides)
+        {
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">@item.Name</h6>
+                        <p class="card-text text-success fw-semibold">R$ @item.Price.ToString("F2")</p>
+                        <span class="badge bg-info text-dark">@item.Type</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-4 p-3 bg-light rounded">
+        <h6>Discount Rules</h6>
+        <ul class="mb-0">
+            <li>Sandwich + Fries + Soda → <strong>20% off</strong></li>
+            <li>Sandwich + Soda → <strong>15% off</strong></li>
+            <li>Sandwich + Fries → <strong>10% off</strong></li>
+        </ul>
+    </div>
+}
+
+@code {
+    private List<MenuItemResponse> sandwiches = [];
+    private List<MenuItemResponse> sides      = [];
+    private bool loading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var items = await MenuApi.GetMenuAsync() ?? [];
+            sandwiches = items.Where(i => i.Type == "Sandwich").ToList();
+            sides      = items.Where(i => i.Type != "Sandwich").ToList();
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load menu: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

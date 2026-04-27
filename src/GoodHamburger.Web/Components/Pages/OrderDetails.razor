@@ -1,0 +1,86 @@
+@page "/orders/{Id:guid}"
+@attribute [Authorize]
+@inject OrderApiClient OrderApi
+@inject NavigationManager Nav
+
+<PageTitle>Order Details — Good Hamburger</PageTitle>
+
+@if (loading)
+{
+    <p><em>Loading…</em></p>
+}
+else if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+else if (order is not null)
+{
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Order Details</h3>
+        <div>
+            <a class="btn btn-outline-primary me-2" href="/orders/@order.Id/edit">Edit</a>
+            <a class="btn btn-outline-secondary" href="/orders">← Back</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between">
+            <code>@order.Id</code>
+            <small class="text-muted">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+        </div>
+        <div class="card-body">
+            <h6>Items</h6>
+            <table class="table table-sm mb-3">
+                <thead><tr><th>Item</th><th>Type</th><th class="text-end">Price</th></tr></thead>
+                <tbody>
+                    @foreach (var item in order.Items)
+                    {
+                        <tr>
+                            <td>@item.MenuItemName</td>
+                            <td><span class="badge bg-secondary">@item.Type</span></td>
+                            <td class="text-end">R$ @item.UnitPrice.ToString("F2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <hr />
+            <div class="row text-end">
+                <div class="col">
+                    <div class="text-muted">Subtotal</div>
+                    <div>R$ @order.Subtotal.ToString("F2")</div>
+                </div>
+                <div class="col">
+                    <div class="text-muted">Discount</div>
+                    @if (order.DiscountPercentage > 0)
+                    {
+                        <div class="text-success">-@((order.DiscountPercentage * 100).ToString("F0"))% (R$ @order.DiscountAmount.ToString("F2"))</div>
+                    }
+                    else
+                    {
+                        <div>—</div>
+                    }
+                </div>
+                <div class="col">
+                    <div class="text-muted">Total</div>
+                    <div class="fs-5 fw-bold">R$ @order.Total.ToString("F2")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private OrderResponse? order;
+    private bool loading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try   { order = await OrderApi.GetByIdAsync(Id); }
+        catch (Exception ex) { error = ex.Message; }
+        finally { loading = false; }
+    }
+}

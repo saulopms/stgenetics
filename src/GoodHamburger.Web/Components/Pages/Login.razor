@@ -1,0 +1,75 @@
+@page "/login"
+@inject AuthApiClient AuthApi
+@inject AuthStateService AuthState
+@inject CustomAuthStateProvider AuthProvider
+@inject NavigationManager Nav
+
+<PageTitle>Login — Good Hamburger</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white text-center">
+                <h4 class="mb-0">🍔 Good Hamburger</h4>
+            </div>
+            <div class="card-body">
+                <EditForm Model="model" OnValidSubmit="HandleLogin" FormName="login">
+                    <DataAnnotationsValidator />
+
+                    @if (errorMessage is not null)
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <InputText class="form-control" @bind-Value="model.Username" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <InputText type="password" class="form-control" @bind-Value="model.Password" />
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100" disabled="@loading">
+                        @(loading ? "Logging in…" : "Login")
+                    </button>
+                </EditForm>
+            </div>
+            <div class="card-footer text-muted small text-center">
+                Demo credentials: <strong>admin / admin123</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private readonly LoginModel model = new() { Username = "admin", Password = "admin123" };
+    private string? errorMessage;
+    private bool loading;
+
+    private async Task HandleLogin()
+    {
+        loading = true;
+        errorMessage = null;
+
+        var token = await AuthApi.LoginAsync(model.Username, model.Password);
+
+        if (token is null)
+        {
+            errorMessage = "Invalid username or password.";
+            loading = false;
+            return;
+        }
+
+        AuthState.SetUser(token, model.Username);
+        AuthProvider.NotifyStateChanged();
+        Nav.NavigateTo("/orders");
+    }
+
+    private sealed class LoginModel
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

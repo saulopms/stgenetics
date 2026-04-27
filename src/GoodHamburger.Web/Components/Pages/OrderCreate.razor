@@ -1,0 +1,133 @@
+@page "/orders/create"
+@attribute [Authorize]
+@inject OrderApiClient OrderApi
+@inject MenuApiClient MenuApi
+@inject NavigationManager Nav
+
+<PageTitle>New Order — Good Hamburger</PageTitle>
+
+<h3>🛒 New Order</h3>
+<a class="btn btn-link ps-0" href="/orders">← Back to orders</a>
+
+@if (loadingMenu)
+{
+    <p><em>Loading menu…</em></p>
+}
+else
+{
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
+            @if (error is not null)
+            {
+                <div class="alert alert-danger">@error</div>
+            }
+
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <h5>Sandwich <span class="text-muted small">(pick one)</span></h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="sandwich"
+                               value="0" checked="@(selectedSandwichId == null)"
+                               @onchange="() => selectedSandwichId = null" />
+                        <label class="form-check-label text-muted">None</label>
+                    </div>
+                    @foreach (var item in sandwiches)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sandwich"
+                                   value="@item.Id" checked="@(selectedSandwichId == item.Id)"
+                                   @onchange="() => selectedSandwichId = item.Id" />
+                            <label class="form-check-label">
+                                @item.Name <span class="text-success fw-semibold">R$ @item.Price.ToString("F2")</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-4">
+                    <h5>Sides</h5>
+                    @foreach (var item in sides)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   checked="@selectedSideIds.Contains(item.Id)"
+                                   @onchange="e => ToggleSide(item.Id, (bool)e.Value!)" />
+                            <label class="form-check-label">
+                                @item.Name <span class="text-success fw-semibold">R$ @item.Price.ToString("F2")</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-3">
+                    <h5>Summary</h5>
+                    <ul class="list-unstyled small">
+                        @if (selectedSandwichId.HasValue)
+                        {
+                            var s = sandwiches.First(x => x.Id == selectedSandwichId);
+                            <li>@s.Name — R$ @s.Price.ToString("F2")</li>
+                        }
+                        @foreach (var sid in selectedSideIds)
+                        {
+                            var side = sides.First(x => x.Id == sid);
+                            <li>@side.Name — R$ @side.Price.ToString("F2")</li>
+                        }
+                    </ul>
+                    @if (!SelectedIds.Any())
+                    {
+                        <p class="text-muted small">No items selected.</p>
+                    }
+                </div>
+            </div>
+
+            <button class="btn btn-dark mt-4" @onclick="Submit" disabled="@(!SelectedIds.Any() || submitting)">
+                @(submitting ? "Creating…" : "Create Order")
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    private List<MenuItemResponse> sandwiches = [];
+    private List<MenuItemResponse> sides      = [];
+    private int? selectedSandwichId;
+    private readonly HashSet<int> selectedSideIds = [];
+    private bool loadingMenu = true;
+    private bool submitting;
+    private string? error;
+
+    private IEnumerable<int> SelectedIds =>
+        (selectedSandwichId.HasValue ? [selectedSandwichId.Value] : Array.Empty<int>())
+        .Concat(selectedSideIds);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var items = await MenuApi.GetMenuAsync() ?? [];
+        sandwiches   = items.Where(i => i.Type == "Sandwich").ToList();
+        sides        = items.Where(i => i.Type != "Sandwich").ToList();
+        loadingMenu  = false;
+    }
+
+    private void ToggleSide(int id, bool on)
+    {
+        if (on) selectedSideIds.Add(id);
+        else    selectedSideIds.Remove(id);
+    }
+
+    private async Task Submit()
+    {
+        error = null;
+        submitting = true;
+        try
+        {
+            var request = new CreateOrderRequest { MenuItemIds = SelectedIds.ToList() };
+            var created = await OrderApi.CreateAsync(request);
+            Nav.NavigateTo($"/orders/{created!.Id}");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            submitting = false;
+        }
+    }
+}

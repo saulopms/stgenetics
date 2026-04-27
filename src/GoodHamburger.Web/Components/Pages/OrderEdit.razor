@@ -1,0 +1,126 @@
+@page "/orders/{Id:guid}/edit"
+@attribute [Authorize]
+@inject OrderApiClient OrderApi
+@inject MenuApiClient MenuApi
+@inject NavigationManager Nav
+
+<PageTitle>Edit Order — Good Hamburger</PageTitle>
+
+<h3>✏️ Edit Order</h3>
+<a class="btn btn-link ps-0" href="/orders/@Id">← Back to order</a>
+
+@if (loading)
+{
+    <p><em>Loading…</em></p>
+}
+else
+{
+    <div class="card shadow-sm mt-3">
+        <div class="card-body">
+            @if (error is not null)
+            {
+                <div class="alert alert-danger">@error</div>
+            }
+
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <h5>Sandwich <span class="text-muted small">(pick one)</span></h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="sandwich"
+                               checked="@(selectedSandwichId == null)"
+                               @onchange="() => selectedSandwichId = null" />
+                        <label class="form-check-label text-muted">None</label>
+                    </div>
+                    @foreach (var item in sandwiches)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="sandwich"
+                                   checked="@(selectedSandwichId == item.Id)"
+                                   @onchange="() => selectedSandwichId = item.Id" />
+                            <label class="form-check-label">
+                                @item.Name <span class="text-success fw-semibold">R$ @item.Price.ToString("F2")</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-4">
+                    <h5>Sides</h5>
+                    @foreach (var item in sides)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   checked="@selectedSideIds.Contains(item.Id)"
+                                   @onchange="e => ToggleSide(item.Id, (bool)e.Value!)" />
+                            <label class="form-check-label">
+                                @item.Name <span class="text-success fw-semibold">R$ @item.Price.ToString("F2")</span>
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <button class="btn btn-dark mt-4" @onclick="Submit" disabled="@(!SelectedIds.Any() || submitting)">
+                @(submitting ? "Saving…" : "Save Changes")
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private List<MenuItemResponse> sandwiches = [];
+    private List<MenuItemResponse> sides      = [];
+    private int? selectedSandwichId;
+    private readonly HashSet<int> selectedSideIds = [];
+    private bool loading = true;
+    private bool submitting;
+    private string? error;
+
+    private IEnumerable<int> SelectedIds =>
+        (selectedSandwichId.HasValue ? [selectedSandwichId.Value] : Array.Empty<int>())
+        .Concat(selectedSideIds);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var menuItems = await MenuApi.GetMenuAsync() ?? [];
+        sandwiches = menuItems.Where(i => i.Type == "Sandwich").ToList();
+        sides      = menuItems.Where(i => i.Type != "Sandwich").ToList();
+
+        var order = await OrderApi.GetByIdAsync(Id);
+        if (order is not null)
+        {
+            foreach (var item in order.Items)
+            {
+                if (item.Type == "Sandwich") selectedSandwichId = item.MenuItemId;
+                else selectedSideIds.Add(item.MenuItemId);
+            }
+        }
+
+        loading = false;
+    }
+
+    private void ToggleSide(int id, bool on)
+    {
+        if (on) selectedSideIds.Add(id);
+        else    selectedSideIds.Remove(id);
+    }
+
+    private async Task Submit()
+    {
+        error = null;
+        submitting = true;
+        try
+        {
+            var request = new UpdateOrderRequest { MenuItemIds = SelectedIds.ToList() };
+            await OrderApi.UpdateAsync(Id, request);
+            Nav.NavigateTo($"/orders/{Id}");
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            submitting = false;
+        }
+    }
+}
