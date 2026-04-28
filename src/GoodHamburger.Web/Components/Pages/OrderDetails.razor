@@ -3,11 +3,11 @@
 @inject OrderApiClient OrderApi
 @inject NavigationManager Nav
 
-<PageTitle>Order Details — Good Hamburger</PageTitle>
+<PageTitle>Detalhes do Pedido — Good Hamburger</PageTitle>
 
 @if (loading)
 {
-    <p><em>Loading…</em></p>
+    <p><em>Carregando…</em></p>
 }
 else if (error is not null)
 {
@@ -16,10 +16,10 @@ else if (error is not null)
 else if (order is not null)
 {
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3>Order Details</h3>
+        <h3>Detalhes do Pedido</h3>
         <div>
-            <a class="btn btn-outline-primary me-2" href="/orders/@order.Id/edit">Edit</a>
-            <a class="btn btn-outline-secondary" href="/orders">← Back</a>
+            <a class="btn btn-outline-primary me-2" href="/orders/@order.Id/edit">Editar</a>
+            <a class="btn btn-outline-secondary" href="/orders">← Voltar</a>
         </div>
     </div>
 
@@ -29,15 +29,15 @@ else if (order is not null)
             <small class="text-muted">@order.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
         </div>
         <div class="card-body">
-            <h6>Items</h6>
+            <h6>Itens</h6>
             <table class="table table-sm mb-3">
-                <thead><tr><th>Item</th><th>Type</th><th class="text-end">Price</th></tr></thead>
+                <thead><tr><th>Item</th><th>Tipo</th><th class="text-end">Preço</th></tr></thead>
                 <tbody>
                     @foreach (var item in order.Items)
                     {
                         <tr>
                             <td>@item.MenuItemName</td>
-                            <td><span class="badge bg-secondary">@item.Type</span></td>
+                            <td><span class="badge bg-secondary">@TraduzirTipo(item.Type)</span></td>
                             <td class="text-end">R$ @item.UnitPrice.ToString("F2")</td>
                         </tr>
                     }
@@ -51,7 +51,7 @@ else if (order is not null)
                     <div>R$ @order.Subtotal.ToString("F2")</div>
                 </div>
                 <div class="col">
-                    <div class="text-muted">Discount</div>
+                    <div class="text-muted">Desconto</div>
                     @if (order.DiscountPercentage > 0)
                     {
                         <div class="text-success">-@((order.DiscountPercentage * 100).ToString("F0"))% (R$ @order.DiscountAmount.ToString("F2"))</div>
@@ -83,4 +83,12 @@ else if (order is not null)
         catch (Exception ex) { error = ex.Message; }
         finally { loading = false; }
     }
+
+    private static string TraduzirTipo(string type) => type switch
+    {
+        "Sandwich" => "Sanduíche",
+        "Fries"    => "Batata Frita",
+        "Soda"     => "Refrigerante",
+        _          => type
+    };
 }

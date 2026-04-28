@@ -4,14 +4,14 @@
 @inject MenuApiClient MenuApi
 @inject NavigationManager Nav
 
-<PageTitle>Edit Order — Good Hamburger</PageTitle>
+<PageTitle>Editar Pedido — Good Hamburger</PageTitle>
 
-<h3>✏️ Edit Order</h3>
-<a class="btn btn-link ps-0" href="/orders/@Id">← Back to order</a>
+<h3>✏️ Editar Pedido</h3>
+<a class="btn btn-link ps-0" href="/orders/@Id">← Voltar ao pedido</a>
 
 @if (loading)
 {
-    <p><em>Loading…</em></p>
+    <p><em>Carregando…</em></p>
 }
 else
 {
@@ -24,12 +24,12 @@ else
 
             <div class="row g-4">
                 <div class="col-md-5">
-                    <h5>Sandwich <span class="text-muted small">(pick one)</span></h5>
+                    <h5>Sanduíche <span class="text-muted small">(escolha um)</span></h5>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="sandwich"
                                checked="@(selectedSandwichId == null)"
                                @onchange="() => selectedSandwichId = null" />
-                        <label class="form-check-label text-muted">None</label>
+                        <label class="form-check-label text-muted">Nenhum</label>
                     </div>
                     @foreach (var item in sandwiches)
                     {
@@ -45,7 +45,7 @@ else
                 </div>
 
                 <div class="col-md-4">
-                    <h5>Sides</h5>
+                    <h5>Acompanhamentos</h5>
                     @foreach (var item in sides)
                     {
                         <div class="form-check">
@@ -61,7 +61,7 @@ else
             </div>
 
             <button class="btn btn-dark mt-4" @onclick="Submit" disabled="@(!SelectedIds.Any() || submitting)">
-                @(submitting ? "Saving…" : "Save Changes")
+                @(submitting ? "Salvando…" : "Salvar Alterações")
             </button>
         </div>
     </div>

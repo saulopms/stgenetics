@@ -2,13 +2,13 @@
 @attribute [Authorize]
 @inject MenuApiClient MenuApi
 
-<PageTitle>Menu — Good Hamburger</PageTitle>
+<PageTitle>Cardápio — Good Hamburger</PageTitle>
 
-<h3>🍔 Menu</h3>
+<h3>🍔 Cardápio</h3>
 
 @if (loading)
 {
-    <p><em>Loading…</em></p>
+    <p><em>Carregando…</em></p>
 }
 else if (error is not null)
 {
@@ -18,7 +18,7 @@ else
 {
     <div class="row g-3">
         <div class="col-12">
-            <h5 class="text-muted">Sandwiches</h5>
+            <h5 class="text-muted">Sanduíches</h5>
         </div>
         @foreach (var item in sandwiches)
         {
@@ -27,14 +27,14 @@ else
                     <div class="card-body">
                         <h6 class="card-title fw-bold">@item.Name</h6>
                         <p class="card-text text-success fw-semibold">R$ @item.Price.ToString("F2")</p>
-                        <span class="badge bg-secondary">@item.Type</span>
+                        <span class="badge bg-secondary">@TraduzirTipo(item.Type)</span>
                     </div>
                 </div>
             </div>
         }
 
         <div class="col-12 mt-3">
-            <h5 class="text-muted">Sides</h5>
+            <h5 class="text-muted">Acompanhamentos</h5>
         </div>
         @foreach (var item in sides)
         {
@@ -43,7 +43,7 @@ else
                     <div class="card-body">
                         <h6 class="card-title fw-bold">@item.Name</h6>
                         <p class="card-text text-success fw-semibold">R$ @item.Price.ToString("F2")</p>
-                        <span class="badge bg-info text-dark">@item.Type</span>
+                        <span class="badge bg-info text-dark">@TraduzirTipo(item.Type)</span>
                     </div>
                 </div>
             </div>
@@ -51,11 +51,11 @@ else
     </div>
 
     <div class="mt-4 p-3 bg-light rounded">
-        <h6>Discount Rules</h6>
+        <h6>Regras de desconto</h6>
         <ul class="mb-0">
-            <li>Sandwich + Fries + Soda → <strong>20% off</strong></li>
-            <li>Sandwich + Soda → <strong>15% off</strong></li>
-            <li>Sandwich + Fries → <strong>10% off</strong></li>
+            <li>Sanduíche + Batata Frita + Refrigerante → <strong>20% de desconto</strong></li>
+            <li>Sanduíche + Refrigerante → <strong>15% de desconto</strong></li>
+            <li>Sanduíche + Batata Frita → <strong>10% de desconto</strong></li>
         </ul>
     </div>
 }
@@ -76,11 +76,19 @@ else
         }
         catch (Exception ex)
         {
-            error = $"Failed to load menu: {ex.Message}";
+            error = $"Falha ao carregar cardápio: {ex.Message}";
         }
         finally
         {
             loading = false;
         }
     }
+
+    private static string TraduzirTipo(string type) => type switch
+    {
+        "Sandwich" => "Sanduíche",
+        "Fries"    => "Batata Frita",
+        "Soda"     => "Refrigerante",
+        _          => type
+    };
 }

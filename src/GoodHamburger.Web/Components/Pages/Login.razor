@@ -4,7 +4,7 @@
 @inject CustomAuthStateProvider AuthProvider
 @inject NavigationManager Nav
 
-<PageTitle>Login — Good Hamburger</PageTitle>
+<PageTitle>Entrar — Good Hamburger</PageTitle>
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-4">
@@ -22,22 +22,22 @@
                     }
 
                     <div class="mb-3">
-                        <label class="form-label">Username</label>
+                        <label class="form-label">Usuário</label>
                         <InputText class="form-control" @bind-Value="model.Username" />
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Password</label>
+                        <label class="form-label">Senha</label>
                         <InputText type="password" class="form-control" @bind-Value="model.Password" />
                     </div>
 
                     <button type="submit" class="btn btn-dark w-100" disabled="@loading">
-                        @(loading ? "Logging in…" : "Login")
+                        @(loading ? "Entrando…" : "Entrar")
                     </button>
                 </EditForm>
             </div>
             <div class="card-footer text-muted small text-center">
-                Demo credentials: <strong>admin / admin123</strong>
+                Credenciais demo: <strong>admin / admin123</strong>
             </div>
         </div>
     </div>
@@ -57,7 +57,7 @@
 
         if (token is null)
         {
-            errorMessage = "Invalid username or password.";
+            errorMessage = "Usuário ou senha inválidos.";
             loading = false;
             return;
         }

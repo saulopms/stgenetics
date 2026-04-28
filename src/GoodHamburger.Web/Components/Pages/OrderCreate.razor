@@ -4,14 +4,14 @@
 @inject MenuApiClient MenuApi
 @inject NavigationManager Nav
 
-<PageTitle>New Order — Good Hamburger</PageTitle>
+<PageTitle>Novo Pedido — Good Hamburger</PageTitle>
 
-<h3>🛒 New Order</h3>
-<a class="btn btn-link ps-0" href="/orders">← Back to orders</a>
+<h3>🛒 Novo Pedido</h3>
+<a class="btn btn-link ps-0" href="/orders">← Voltar aos pedidos</a>
 
 @if (loadingMenu)
 {
-    <p><em>Loading menu…</em></p>
+    <p><em>Carregando cardápio…</em></p>
 }
 else
 {
@@ -24,12 +24,12 @@ else
 
             <div class="row g-4">
                 <div class="col-md-5">
-                    <h5>Sandwich <span class="text-muted small">(pick one)</span></h5>
+                    <h5>Sanduíche <span class="text-muted small">(escolha um)</span></h5>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="sandwich"
                                value="0" checked="@(selectedSandwichId == null)"
                                @onchange="() => selectedSandwichId = null" />
-                        <label class="form-check-label text-muted">None</label>
+                        <label class="form-check-label text-muted">Nenhum</label>
                     </div>
                     @foreach (var item in sandwiches)
                     {
@@ -45,7 +45,7 @@ else
                 </div>
 
                 <div class="col-md-4">
-                    <h5>Sides</h5>
+                    <h5>Acompanhamentos</h5>
                     @foreach (var item in sides)
                     {
                         <div class="form-check">
@@ -60,7 +60,7 @@ else
                 </div>
 
                 <div class="col-md-3">
-                    <h5>Summary</h5>
+                    <h5>Resumo</h5>
                     <ul class="list-unstyled small">
                         @if (selectedSandwichId.HasValue)
                         {
@@ -75,13 +75,13 @@ else
                     </ul>
                     @if (!SelectedIds.Any())
                     {
-                        <p class="text-muted small">No items selected.</p>
+                        <p class="text-muted small">Nenhum item selecionado.</p>
                     }
                 </div>
             </div>
 
             <button class="btn btn-dark mt-4" @onclick="Submit" disabled="@(!SelectedIds.Any() || submitting)">
-                @(submitting ? "Creating…" : "Create Order")
+                @(submitting ? "Criando…" : "Criar Pedido")
             </button>
         </div>
     </div>
@@ -103,9 +103,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         var items = await MenuApi.GetMenuAsync() ?? [];
-        sandwiches   = items.Where(i => i.Type == "Sandwich").ToList();
-        sides        = items.Where(i => i.Type != "Sandwich").ToList();
-        loadingMenu  = false;
+        sandwiches  = items.Where(i => i.Type == "Sandwich").ToList();
+        sides       = items.Where(i => i.Type != "Sandwich").ToList();
+        loadingMenu = false;
     }
 
     private void ToggleSide(int id, bool on)

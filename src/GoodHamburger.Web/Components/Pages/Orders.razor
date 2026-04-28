@@ -3,16 +3,16 @@
 @inject OrderApiClient OrderApi
 @inject NavigationManager Nav
 
-<PageTitle>Orders — Good Hamburger</PageTitle>
+<PageTitle>Pedidos — Good Hamburger</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>📋 Orders</h3>
-    <a class="btn btn-dark" href="/orders/create">+ New Order</a>
+    <h3>📋 Pedidos</h3>
+    <a class="btn btn-dark" href="/orders/create">+ Novo Pedido</a>
 </div>
 
 @if (loading)
 {
-    <p><em>Loading…</em></p>
+    <p><em>Carregando…</em></p>
 }
 else if (error is not null)
 {
@@ -20,7 +20,7 @@ else if (error is not null)
 }
 else if (!orders.Any())
 {
-    <div class="alert alert-info">No orders yet. <a href="/orders/create">Create one!</a></div>
+    <div class="alert alert-info">Nenhum pedido ainda. <a href="/orders/create">Criar um!</a></div>
 }
 else
 {
@@ -29,11 +29,11 @@ else
             <thead class="table-dark">
                 <tr>
                     <th>ID</th>
-                    <th>Items</th>
+                    <th>Itens</th>
                     <th>Subtotal</th>
-                    <th>Discount</th>
+                    <th>Desconto</th>
                     <th>Total</th>
-                    <th>Created</th>
+                    <th>Criado em</th>
                     <th></th>
                 </tr>
             </thead>
@@ -57,10 +57,10 @@ else
                         <td><strong>R$ @o.Total.ToString("F2")</strong></td>
                         <td class="text-muted small">@o.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
                         <td>
-                            <a class="btn btn-sm btn-outline-secondary me-1" href="/orders/@o.Id">View</a>
-                            <a class="btn btn-sm btn-outline-primary me-1"   href="/orders/@o.Id/edit">Edit</a>
+                            <a class="btn btn-sm btn-outline-secondary me-1" href="/orders/@o.Id">Ver</a>
+                            <a class="btn btn-sm btn-outline-primary me-1"   href="/orders/@o.Id/edit">Editar</a>
                             <button class="btn btn-sm btn-outline-danger"
-                                    @onclick="() => ConfirmDelete(o.Id)">Delete</button>
+                                    @onclick="() => ConfirmarExclusao(o.Id)">Excluir</button>
                         </td>
                     </tr>
                 }
@@ -75,14 +75,14 @@ else
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Confirm deletion</h5>
+                    <h5 class="modal-title">Confirmar exclusão</h5>
                 </div>
                 <div class="modal-body">
-                    Delete order <code>@deleteConfirmId.Value.ToString()[..8]…</code>?
+                    Excluir o pedido <code>@deleteConfirmId.Value.ToString()[..8]…</code>?
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
-                    <button class="btn btn-danger"    @onclick="ExecuteDelete">Delete</button>
+                    <button class="btn btn-secondary" @onclick="CancelarExclusao">Cancelar</button>
+                    <button class="btn btn-danger"    @onclick="ExecutarExclusao">Excluir</button>
                 </div>
             </div>
         </div>
@@ -95,9 +95,9 @@ else
     private string? error;
     private Guid? deleteConfirmId;
 
-    protected override async Task OnInitializedAsync() => await LoadOrders();
+    protected override async Task OnInitializedAsync() => await CarregarPedidos();
 
-    private async Task LoadOrders()
+    private async Task CarregarPedidos()
     {
         loading = true;
         error   = null;
@@ -106,17 +106,17 @@ else
         finally { loading = false; }
     }
 
-    private void ConfirmDelete(Guid id) => deleteConfirmId = id;
-    private void CancelDelete()         => deleteConfirmId = null;
+    private void ConfirmarExclusao(Guid id) => deleteConfirmId = id;
+    private void CancelarExclusao()         => deleteConfirmId = null;
 
-    private async Task ExecuteDelete()
+    private async Task ExecutarExclusao()
     {
         if (deleteConfirmId is null) return;
         try
         {
             await OrderApi.DeleteAsync(deleteConfirmId.Value);
             deleteConfirmId = null;
-            await LoadOrders();
+            await CarregarPedidos();
         }
         catch (Exception ex) { error = ex.Message; }
     }
