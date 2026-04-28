@@ -15,21 +15,12 @@ builder.Services.AddScoped<CustomAuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(
     sp => sp.GetRequiredService<CustomAuthStateProvider>());
 
-builder.Services.AddScoped<AuthHttpMessageHandler>();
-
 var apiBase = new Uri(builder.Configuration["ApiSettings:BaseUrl"]
                       ?? "http://localhost:5022/");
 
-builder.Services
-    .AddHttpClient<AuthApiClient>(c => c.BaseAddress = apiBase);
-
-builder.Services
-    .AddHttpClient<MenuApiClient>(c => c.BaseAddress = apiBase)
-    .AddHttpMessageHandler<AuthHttpMessageHandler>();
-
-builder.Services
-    .AddHttpClient<OrderApiClient>(c => c.BaseAddress = apiBase)
-    .AddHttpMessageHandler<AuthHttpMessageHandler>();
+builder.Services.AddHttpClient<AuthApiClient>(c => c.BaseAddress = apiBase);
+builder.Services.AddHttpClient<MenuApiClient>(c => c.BaseAddress = apiBase);
+builder.Services.AddHttpClient<OrderApiClient>(c => c.BaseAddress = apiBase);
 
 var app = builder.Build();
 
@@ -43,6 +34,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveServerRenderMode()
+    .AllowAnonymous(); // HTTP pipeline delegates auth to Blazor's AuthorizeRouteView
 
 app.Run();
